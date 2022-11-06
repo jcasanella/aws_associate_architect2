@@ -1,18 +1,19 @@
 # Generates a secure private key and encodes it as PEM
-# resource "tls_private_key" "key_pair" {
-#   algorithm = "RSA"
-#   rsa_bits  = 4096
-# }
-# Create the Key Pair
-# resource "aws_key_pair" "key_pair" {
-#   key_name   = "linux-key-pair"
-#   public_key = tls_private_key.key_pair.public_key_openssh
-# }
+resource "tls_private_key" "key_pair" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
 
-# resource "local_file" "ssh_key" {
-#   filename = "${aws_key_pair.key_pair.key_name}.pem"
-#   content  = tls_private_key.key_pair.private_key_pem
-# }
+# Create the Key Pair
+resource "aws_key_pair" "key_pair" {
+  key_name   = "windows-key-pair"
+  public_key = tls_private_key.key_pair.public_key_openssh
+}
+
+resource "local_file" "ssh_key" {
+  filename = "${aws_key_pair.key_pair.key_name}.pem"
+  content  = tls_private_key.key_pair.private_key_pem
+}
 
 # Data provider to get the ami id
 data "aws_ami" "this" {
@@ -20,7 +21,7 @@ data "aws_ami" "this" {
 
   filter {
     name   = "name"
-    values = ["Windows_Server-2022-English*"]
+    values = ["Windows_Server-2022-English-Full-Base*"]
   }
 
   owners = ["amazon"]
@@ -74,13 +75,14 @@ resource "aws_security_group_rule" "egress" {
   security_group_id = aws_security_group.this.id
 }
 
-
-
+#  "ami-0307655fcb954b39f"
 resource "aws_instance" "this" {
-  ami             = "ami-0307655fcb954b39f"
-  instance_type   = "t2.micro"
-  subnet_id       = tolist(data.aws_subnets.this.ids)[0]
-  security_groups = [aws_security_group.this.id]
+  ami               = data.aws_ami.this.id
+  instance_type     = "t2.micro"
+  subnet_id         = tolist(data.aws_subnets.this.ids)[0]
+  security_groups   = [aws_security_group.this.id]
+  get_password_data = "true"
+  key_name          = aws_key_pair.key_pair.key_name
 
   tags = {
     Name = "Windows Terraform"
