@@ -23,10 +23,30 @@ An IAM identity that you can create in your account that has specific permission
 
 IAM is a framework of policies and technologies to ensure that the right users have the appropriate access to technology resources. An AWS IAM policy defines the permissions of an identity (users, groups, and roles) or resource within the AWS account. An AWS IAM policy regulates access to AWS resources to help ensure that only authorized users have access to specific digital assets. Permissions defined within a policy either allow or deny access for the user to perform an action on a specific resource.
 
+**AWS managed policies** is a standalone policy that is created and administered by AWS. Standalone policy means that the policy has its own Amazon Resource Name (ARN) that includes the policy name. AWS managed policies are designed to provide permissions for many common use cases.
+
+**Customer managed policies** You can create standalone policies that you administer in your own AWS account, which we refer to as customer managed policies. You can then attach the policies to multiple principal entities in your AWS account. When you attach a policy to a principal entity, you give the entity the permissions that are defined in the policy.
+
+**Inline policies** is a policy that's embedded in an IAM identity (a user, group, or role). That is, the policy is an inherent part of the identity. You can create a policy and embed it in an identity, either when you create the identity or later.
+
 IAM policies can either be **identity-based** or **resource-based**. 
 **Identity-based** policies are attached to an identity (a user, group, or role) and dictate the permissions of that specific identity. In contrast, a **resource-based** policy defines the permissions around the specific resource—by specifying which identities have access to a specific resource and when.
 
 ## Permission boundary
+
+A permissions boundary sets the maximum permissions that an identity-based policy can grant to an IAM entity. An entity's permissions boundary allows it to perform only the actions that are allowed by both its identity-based policies and its permissions boundaries.
+
+### Evaluating effective permissions with boundaries
+
+The permissions boundary for an IAM entity (user or role) sets the maximum permissions that the entity can have. This can change the effective permissions for that user or role.
+
+**Identity-based policies with boundaries** – Identity-based policies are inline or managed policies that are attached to a user, group of users, or role. Identity-based policies grant permission to the entity, and permissions boundaries limit those permissions. The effective permissions are the intersection of both policy types. An explicit deny in either of these policies overrides the allow.
+
+![Identity-based policy](./images/permissions_boundary.png)
+
+**Resource-based policies** – Resource-based policies control how the specified principal can access the resource to which the policy is attached.
+
+Within the same account, resource-based policies that grant permissions to an IAM user ARN (that is not a federated user session) are not limited by an implicit deny in an identity-based policy or permissions boundary.
 
 ## Secure Token Service
 
