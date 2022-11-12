@@ -64,6 +64,7 @@ resource "aws_instance" "this" {
   instance_type   = "t2.micro"
   subnet_id       = tolist(data.aws_subnets.this.ids)[0]
   security_groups = [aws_security_group.this.id]
+  key_name        = aws_key_pair.key_pair.key_name
 
   tags = {
     Name = "AmazonLinux Terraform"
