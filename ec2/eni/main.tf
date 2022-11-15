@@ -54,18 +54,18 @@ resource "aws_security_group" "this" {
   egress {
     from_port   = 0
     protocol    = "-1"
+    to_port     = 0
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
 resource "aws_instance" "this" {
-  ami                  = data.aws_ami.this.id
-  instance_type        = "t2.micro"
-  count                = length(tolist(data.aws_subnets.this.ids)) - 1
-  subnet_id            = count.index
-  security_groups      = [aws_security_group.this.id]
-  key_name             = aws_key_pair.key_pair.key_name
-  iam_instance_profile = aws_iam_instance_profile.this.name
+  ami             = data.aws_ami.this.id
+  instance_type   = "t2.micro"
+  count           = length(tolist(data.aws_subnets.this.ids)) - 1
+  subnet_id       = count.index
+  security_groups = [aws_security_group.this.id]
+  key_name        = aws_key_pair.key_pair.key_name
 
   tags = {
     Name = "AmazonLinux Terraform"
@@ -75,7 +75,7 @@ resource "aws_instance" "this" {
 resource "aws_network_interface" "this" {
   subnet_id       = tolist(data.aws_subnets.this.ids)[0]
   private_ips     = ["10.0.0.50"]
-  security_groups = [aws_security_group.web.id]
+  security_groups = [aws_security_group.this.id]
 
   attachment {
     instance     = aws_instance.this[0].id
