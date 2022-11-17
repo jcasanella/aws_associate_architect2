@@ -62,8 +62,8 @@ resource "aws_security_group" "this" {
 resource "aws_instance" "this" {
   ami             = data.aws_ami.this.id
   instance_type   = "t2.micro"
-  count           = length(tolist(data.aws_subnets.this.ids)) - 1
-  subnet_id       = count.index
+  count           = length(data.aws_subnets.this.ids) - 1
+  subnet_id       = data.aws_subnets.this.ids[count.index]
   security_groups = [aws_security_group.this.id]
   key_name        = aws_key_pair.key_pair.key_name
 
@@ -73,8 +73,7 @@ resource "aws_instance" "this" {
 }
 
 resource "aws_network_interface" "this" {
-  subnet_id       = tolist(data.aws_subnets.this.ids)[0]
-  private_ips     = ["10.0.0.50"]
+  subnet_id       = data.aws_subnets.this.ids[0]
   security_groups = [aws_security_group.this.id]
 
   attachment {
