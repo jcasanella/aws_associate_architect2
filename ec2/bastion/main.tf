@@ -59,34 +59,50 @@ resource "aws_security_group" "this" {
   }
 }
 
-resource "aws_instance" "this" {
+resource "aws_subnet" "private" {
+  vpc_id            = data.aws_vpc.default.id
+  cidr_block        = "172.31.48.0/20"
+  availability_zone = "eu-west-2b"
+
+  tags = {
+    Name = "Private"
+  }
+}
+
+resource "aws_route_table" "private" {
+  vpc_id = data.aws_vpc.default.id
+
+  tags = {
+    Name = "AmazonLinux Terraform"
+  }
+}
+
+resource "aws_route_table_association" "this" {
+  subnet_id      = aws_subnet.private.id
+  route_table_id = aws_route_table.private.id
+}
+
+resource "aws_instance" "public" {
   ami             = data.aws_ami.this.id
-  count           = 2
   instance_type   = "t2.micro"
   subnet_id       = data.aws_subnets.this.ids[0]
   security_groups = [aws_security_group.this.id]
   key_name        = aws_key_pair.key_pair.key_name
 
   tags = {
-    Name = "AmazonLinux Terraform"
+    Name = "Public AmazonLinux Terraform"
   }
 }
 
-resource "aws_network_interface" "this" {
-  subnet_id       = data.aws_subnets.this.ids[0]
+resource "aws_instance" "private" {
+  ami             = data.aws_ami.this.id
+  instance_type   = "t2.micro"
+  subnet_id       = aws_subnet.private.id
   security_groups = [aws_security_group.this.id]
+  key_name        = aws_key_pair.key_pair.key_name
 
-  attachment {
-    instance     = aws_instance.this[0].id
-    device_index = 1
-  }
-}
-
-resource "aws_eip" "lb" {
-  vpc                       = true
-  network_interface         = aws_network_interface.this.id
-  associate_with_private_ip = aws_network_interface.this.private_ip
   tags = {
-    Name = "AmazonLinux Terraform"
+    Name = "Private AmazonLinux Terraform"
   }
 }
+
