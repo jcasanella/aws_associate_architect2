@@ -13,3 +13,5 @@
 *.tfvars.json
 
 *.hcl
+
+*.pem
