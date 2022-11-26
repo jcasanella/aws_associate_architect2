@@ -38,6 +38,8 @@ data "aws_subnets" "this" {
   }
 }
 
+data "aws_availability_zones" "available" {}
+
 # Create security group and ec2 instance
 resource "aws_security_group" "this" {
   name = "WebAccess"
@@ -62,24 +64,11 @@ resource "aws_security_group" "this" {
 resource "aws_subnet" "private" {
   vpc_id            = data.aws_vpc.default.id
   cidr_block        = "172.31.48.0/20"
-  availability_zone = "eu-west-2b"
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = "Private"
   }
-}
-
-resource "aws_route_table" "private" {
-  vpc_id = data.aws_vpc.default.id
-
-  tags = {
-    Name = "AmazonLinux Terraform"
-  }
-}
-
-resource "aws_route_table_association" "this" {
-  subnet_id      = aws_subnet.private.id
-  route_table_id = aws_route_table.private.id
 }
 
 resource "aws_instance" "public" {
@@ -106,17 +95,16 @@ resource "aws_instance" "private" {
   }
 }
 
-resource "aws_eip" "lb" {
-  vpc                       = true
-  network_interface         = aws_network_interface.this.id
-  associate_with_private_ip = aws_network_interface.this.private_ip
+resource "aws_eip" "nat_gateway" {
+  vpc = true
+
   tags = {
     Name = "AmazonLinux Terraform"
   }
 }
 
-resource "aws_nat_gateway" "example" {
-  allocation_id = aws_eip.example.id
+resource "aws_nat_gateway" "this" {
+  allocation_id = aws_eip.nat_gateway.id
   subnet_id     = data.aws_subnets.this.ids[0]
 
   tags = {
@@ -124,3 +112,15 @@ resource "aws_nat_gateway" "example" {
   }
 }
 
+resource "aws_route_table" "private" {
+  vpc_id = data.aws_vpc.default.id
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.this.id
+  }
+}
+
+resource "aws_route_table_association" "private" {
+  subnet_id      = aws_subnet.private.id
+  route_table_id = aws_route_table.private.id
+}
