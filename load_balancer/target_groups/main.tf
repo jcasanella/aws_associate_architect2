@@ -6,7 +6,7 @@ resource "aws_lb_target_group" "alb" {
   name     = "TG-ALB"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = aws_vpc.default.id
+  vpc_id   = data.aws_vpc.default.id
 
   health_check {
     path                = "/"
@@ -24,7 +24,7 @@ resource "aws_lb_target_group" "nlb" {
   name     = "TG-NLB"
   port     = 80
   protocol = "TCP"
-  vpc_id   = aws_vpc.default.id
+  vpc_id   = data.aws_vpc.default.id
 
   health_check {
     path                = "/"
