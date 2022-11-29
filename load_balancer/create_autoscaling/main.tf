@@ -69,13 +69,26 @@ resource "aws_launch_configuration" "this" {
 }
 
 resource "aws_autoscaling_group" "this" {
-  name                 = "ASG1"
-  max_size             = 4
-  min_size             = 2
-  desired_capacity     = 2
-  force_delete         = true
+  name                      = "ASG1"
+  max_size                  = 4
+  min_size                  = 2
+  desired_capacity          = 2
+  force_delete              = true
+  health_check_grace_period = 300
+
   launch_configuration = aws_launch_configuration.this.name
   vpc_zone_identifier  = data.aws_subnets.this.ids
+
+  enabled_metrics = [
+    "GroupDesiredCapacity",
+    "GroupInServiceInstances",
+    "GroupMaxSize",
+    "GroupMinSize",
+    "GroupPendingInstances",
+    "GroupStandbyInstances",
+    "GroupTerminatingInstances",
+    "GroupTotalInstances",
+  ]
 
   tag {
     key                 = "name"
