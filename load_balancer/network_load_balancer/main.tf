@@ -59,13 +59,13 @@ resource "aws_security_group" "this" {
   }
 }
 
-resource "aws_launch_configuration" "this" {
-  name            = "LT1"
-  image_id        = data.aws_ami.this.id
-  instance_type   = "t2.micro"
-  key_name        = aws_key_pair.key_pair.key_name
-  security_groups = [aws_security_group.this.id]
-  user_data       = file("scripts/init_script.sh")
+resource "aws_launch_template" "this" {
+  name                   = "LT1"
+  image_id               = data.aws_ami.this.id
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.key_pair.key_name
+  vpc_security_group_ids = [aws_security_group.this.id]
+  user_data              = filebase64("scripts/init_script.sh")
 }
 
 resource "aws_autoscaling_group" "this" {
@@ -76,9 +76,13 @@ resource "aws_autoscaling_group" "this" {
   force_delete              = true
   health_check_grace_period = 300
 
-  launch_configuration = aws_launch_configuration.this.name
-  vpc_zone_identifier  = data.aws_subnets.this.ids
-  target_group_arns    = [aws_lb_target_group.nlb.arn]
+  launch_template {
+    id      = aws_launch_template.this.id
+    version = "$Latest"
+  }
+
+  vpc_zone_identifier = data.aws_subnets.this.ids
+  target_group_arns   = [aws_lb_target_group.nlb.arn]
 
   enabled_metrics = [
     "GroupDesiredCapacity",
@@ -98,7 +102,7 @@ resource "aws_autoscaling_group" "this" {
   }
 
   depends_on = [
-    aws_lb_target_group.nlb
+    aws_lb_target_group.nlb, aws_lb.this
   ]
 }
 
@@ -113,10 +117,10 @@ resource "aws_lb_target_group" "nlb" {
     protocol            = "HTTP"
     port                = 80
     healthy_threshold   = 3
-    unhealthy_threshold = 2
-    timeout             = 5
-    interval            = 30
-    matcher             = "200" # has to be HTTP 200 or fails
+    unhealthy_threshold = 3
+    timeout             = 6
+    interval            = 300
+    matcher             = "200-399" # has to be HTTP 200 or fails
   }
 }
 
