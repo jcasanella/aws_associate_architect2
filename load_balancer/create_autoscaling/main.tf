@@ -50,6 +50,13 @@ resource "aws_security_group" "this" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   #Outgoing traffic
   egress {
     from_port   = 0
@@ -59,13 +66,13 @@ resource "aws_security_group" "this" {
   }
 }
 
-resource "aws_launch_configuration" "this" {
-  name            = "LT1"
-  image_id        = data.aws_ami.this.id
-  instance_type   = "t2.micro"
-  key_name        = aws_key_pair.key_pair.key_name
-  security_groups = [aws_security_group.this.id]
-  user_data       = file("scripts/init_script.sh")
+resource "aws_launch_template" "this" {
+  name                   = "LT1"
+  image_id               = data.aws_ami.this.id
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.key_pair.key_name
+  vpc_security_group_ids = [aws_security_group.this.id]
+  user_data              = filebase64("scripts/init_script.sh")
 }
 
 resource "aws_autoscaling_group" "this" {
@@ -76,8 +83,12 @@ resource "aws_autoscaling_group" "this" {
   force_delete              = true
   health_check_grace_period = 300
 
-  launch_configuration = aws_launch_configuration.this.name
-  vpc_zone_identifier  = data.aws_subnets.this.ids
+  launch_template {
+    id      = aws_launch_template.this.id
+    version = "$Latest"
+  }
+
+  vpc_zone_identifier = data.aws_subnets.this.ids
 
   enabled_metrics = [
     "GroupDesiredCapacity",

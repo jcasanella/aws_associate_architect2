@@ -50,6 +50,13 @@ resource "aws_security_group" "this" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   #Outgoing traffic
   egress {
     from_port   = 0
@@ -74,7 +81,7 @@ resource "aws_autoscaling_group" "this" {
   min_size                  = 2
   desired_capacity          = 2
   force_delete              = true
-  health_check_grace_period = 300
+  health_check_grace_period = 30
 
   launch_template {
     id      = aws_launch_template.this.id
