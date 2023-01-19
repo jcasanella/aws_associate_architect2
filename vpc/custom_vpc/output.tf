@@ -18,3 +18,8 @@ output "route" {
   value       = aws_route_table.private_route.arn
   description = "route arn"
 }
+
+output "igw" {
+  value       = aws_internet_gateway.gw.arn
+  description = "igw arn"
+}
