@@ -13,13 +13,17 @@ output "private_subnets" {
   description = "private subnet arns"
 }
 
-
-output "route" {
-  value       = aws_route_table.private_route.arn
-  description = "route arn"
+output "route_private" {
+  value       = aws_route_table.private.arn
+  description = "route private arn"
 }
 
 output "igw" {
-  value       = aws_internet_gateway.gw.arn
+  value       = aws_internet_gateway.igw.arn
   description = "igw arn"
+}
+
+output "route_public" {
+  value       = aws_route_table.public.arn
+  description = "route public arn"
 }
