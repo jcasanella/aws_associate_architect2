@@ -77,7 +77,7 @@ resource "aws_instance" "private" {
   subnet_id       = aws_subnet.private.*.id[count.index]
   security_groups = [aws_security_group.public_web.id]
   key_name        = aws_key_pair.key_pair.key_name
-  user_data       = file("scripts/user_metadata.sh")
+  user_data       = file("./scripts/user_metadata.sh")
 
   tags = {
     Name = "Linux ${count.index} private"
